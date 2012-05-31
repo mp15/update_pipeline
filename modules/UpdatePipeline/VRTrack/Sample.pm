@@ -80,7 +80,15 @@ sub _build_vr_sample
 sub _build__vr_species
 {
   my ($self) = @_;
-  my $vr_species = VRTrack::Species->new_by_name( $self->_vrtrack, $self->common_name);
+  my $translated_common_name = $self->common_name;
+  my %species_common_trans = (
+    'homo sapien' => 'Homo sapiens',
+  );
+  if (defined ($species_common_trans{ lc $self->common_name } ))
+  {
+      $translated_common_name = $species_common_trans{lc $self->common_name};
+  }
+  my $vr_species = VRTrack::Species->new_by_name( $self->_vrtrack, $translated_common_name );
   
   if((not defined($vr_species) )&& $self->common_name_required ==0)
   {

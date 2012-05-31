@@ -82,6 +82,7 @@ sub _build__vr_species
   my ($self) = @_;
   my $translated_common_name = $self->common_name;
   my %species_common_trans = (
+    'human'       => 'Homo sapiens',
     'homo sapien' => 'Homo sapiens',
   );
   if (defined ($species_common_trans{ lc $self->common_name } ))

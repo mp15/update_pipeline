@@ -45,7 +45,8 @@ sub _build_lane_attributes
   project.ssid as study_ssid,
   lane.processed as lane_processed,
   library.fragment_size_from as fragment_size_from,
-  library.fragment_size_to as fragment_size_to
+  library.fragment_size_to as fragment_size_to,
+  individual.sex as sample_gender
   from latest_lane as lane
   left join latest_library as library on library.library_id = lane.library_id 
   left join latest_sample as sample on sample.sample_id = library.sample_id

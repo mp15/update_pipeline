@@ -108,7 +108,7 @@ sub _update_lane
       common_name_required => $self->common_name_required,
       name => $file_metadata->sample_name,  
       external_id => $file_metadata->sample_ssid, 
-      common_name => $file_metadata->sample_common_name, accession => $file_metadata->sample_accession_number, _vrtrack => $self->_vrtrack,_vr_project => $vproject)->vr_sample();
+      common_name => $file_metadata->sample_common_name, accession => $file_metadata->sample_accession_number, gender=> $file_metadata->sample_gender, _vrtrack => $self->_vrtrack,_vr_project => $vproject)->vr_sample();
     my $vr_library = UpdatePipeline::VRTrack::Library->new(
       name => $file_metadata->library_name,
       external_id        => $file_metadata->library_ssid,

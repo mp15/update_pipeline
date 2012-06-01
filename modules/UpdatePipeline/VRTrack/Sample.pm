@@ -30,6 +30,7 @@ has '_vr_project' => ( is => 'ro',               required   => 1 );
 has 'accession'   => ( is => 'ro', isa => 'Maybe[Str]' );
 has 'external_id' => ( is => 'ro', isa => 'Maybe[Int]' );
 has 'common_name_required' => ( is => 'rw', default    => 1,            isa => 'Bool');
+has 'gender'      => ( is => 'ro', isa => 'Maybe[Str]' );
 
 # external variable
 has 'vr_sample'   => ( is => 'ro',               lazy_build => 1 );
@@ -117,6 +118,11 @@ sub _populate_individual
   if( defined($self->accession)) 
   {
     $vr_individual->acc($self->accession);
+  }
+
+  if( defined($self->gender))
+  {
+    $vr_individual->sex($self->gender);
   }
 
   $self->_add_default_population($vr_individual);

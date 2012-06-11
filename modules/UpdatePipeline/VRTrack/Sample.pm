@@ -87,7 +87,6 @@ sub _build_vr_sample
 sub _build__vr_species
 {
   my ($self) = @_;
-<<<<<<< HEAD
   my $translated_common_name = $self->common_name;
   my %species_common_trans = (
     'human'       => 'Homo sapiens',
@@ -97,10 +96,7 @@ sub _build__vr_species
   {
       $translated_common_name = $species_common_trans{lc $self->common_name};
   }
-  my $vr_species = VRTrack::Species->new_by_name( $self->_vrtrack, $translated_common_name );
-=======
->>>>>>> 10f3ba0f65d2decb1911f509d604b71e1929c1d9
-  
+
   my $vr_species;
    
   if ( $self->taxon_id ) {

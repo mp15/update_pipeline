@@ -29,6 +29,13 @@ sub populate
   1;
 }
 
+sub post_populate
+{
+  my($self) = @_;
+  $self->_populate_supplier_name;
+  1;
+}
+
 sub _populate_ssid_from_name
 {
   my($self) = @_;
@@ -82,6 +89,21 @@ sub _populate_gender_from_ssid
     {
       $self->file_meta_data->sample_gender($sample_warehouse_details[0]);
     }
+  }
+}
+
+sub _populate_supplier_name
+{
+  my($self) = @_;
+  return unless defined($self->file_meta_data->sample_name) ;
+  my $sample_name = $self->file_meta_data->sample_name;
+  my $sql = qq[select supplier_name from current_samples where name = "$sample_name" limit 1;];
+  my $sth = $self->_dbh->prepare($sql);
+  $sth->execute;
+  my @sample_warehouse_details  = $sth->fetchrow_array;
+  if(@sample_warehouse_details > 0)
+  {
+    $self->file_meta_data->supplier_name($sample_warehouse_details[0]) if( defined $sample_warehouse_details[0] );
   }
 }
 

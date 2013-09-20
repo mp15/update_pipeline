@@ -31,6 +31,7 @@ has '_vrtrack'              => ( is => 'rw', required   => 1);
 has '_exception_handler'    => ( is => 'rw', lazy_build => 1,            isa => 'UpdatePipeline::ExceptionHandler' );
 has '_config_settings'      => ( is => 'rw', lazy_build => 1,            isa => 'HashRef' );
 has '_database_settings'    => ( is => 'rw', lazy_build => 1,            isa => 'HashRef' );
+has 'specific_sample_list'  => ( is => 'rw', lazy_build => 1,            isa => 'HashRef');
                            
 has 'verbose_output'        => ( is => 'rw', default    => 0,            isa => 'Bool');
 has 'update_if_changed'     => ( is => 'rw', default    => 0,            isa => 'Bool');
@@ -38,6 +39,8 @@ has 'dont_use_warehouse'    => ( is => 'ro', default    => 0,            isa => 
 has 'use_supplier_name'     => ( is => 'ro', default    => 0,            isa => 'Bool');
 has 'no_pending_lanes'      => ( is => 'ro', default    => 0,            isa => 'Bool');
 has 'specific_run_id'       => ( is => 'ro', default    => 0,            isa => 'Int');
+has 'specific_sample_fn'    => ( is => 'ro', default    => 0,            isa => 'Maybe[Str]');
+has 'override_study_name'   => ( is => 'ro', default    => 0,            isa => 'Maybe[Str]');
                            
 has '_warehouse_dbh'        => ( is => 'rw', lazy_build => 1 );
 has 'minimum_run_id'        => ( is => 'rw', default    => 1,            isa => 'Int' );
@@ -72,6 +75,19 @@ sub _build__exception_handler
   UpdatePipeline::ExceptionHandler->new( _vrtrack => $self->_vrtrack, minimum_run_id => $self->minimum_run_id, update_if_changed => $self->update_if_changed );
 }
 
+sub _build_specific_sample_list
+{
+  my ($self) = @_;
+  my $samp_list = {};
+  open(my $file, "<",$self->specific_sample_fn) or die "cannot open sample list";
+  while (<$file>)
+  {
+      chomp;
+      $samp_list->{$_} = 1;
+  }
+  close($file);
+  return $samp_list;
+}
 
 sub update
 {
@@ -80,6 +96,9 @@ sub update
   for my $file_metadata (@{$self->_files_metadata}) {
     if ($self->taxon_id && defined $self->species_name) {
     	$file_metadata->sample_common_name($self->species_name);
+    }
+    if ($self->override_study_name) {
+        $file_metadata->study_name($self->override_study_name);
     }
     eval {
       if(UpdatePipeline::UpdateLaneMetaData->new(
@@ -90,9 +109,10 @@ sub update
         )
       {
           $self->_post_populate_file_metadata($file_metadata) unless($self->dont_use_warehouse);
-		  my $filter_pending = ( !$self->no_pending_lanes || ( $self->no_pending_lanes && defined $file_metadata->lane_manual_qc && $file_metadata->lane_manual_qc ne 'pending' ) );
-		  my $filter_id_run = ( !$self->specific_run_id || ( $self->specific_run_id && defined $file_metadata->id_run && $self->specific_run_id == $file_metadata->id_run));
-          $self->_update_lane($file_metadata) unless ( !$filter_pending  || !$filter_id_run );
+          my $filter_pending = ( !$self->no_pending_lanes || ( $self->no_pending_lanes && defined $file_metadata->lane_manual_qc && $file_metadata->lane_manual_qc ne 'pending' ) );
+          my $filter_id_run = ( !$self->specific_run_id || ( $self->specific_run_id && defined $file_metadata->id_run && $self->specific_run_id == $file_metadata->id_run));
+          my $filter_sample = ( !$self->specific_sample_fn || ( $self->specific_sample_list && exists $self->specific_sample_list->{$file_metadata->sample_name} ) );
+          $self->_update_lane($file_metadata) unless ( !$filter_pending  || !$filter_id_run || !$filter_sample );
       }
     };
     if(my $exception = Exception::Class->caught())

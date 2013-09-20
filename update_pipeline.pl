@@ -22,7 +22,7 @@ use Parallel::ForkManager;
 use UpdatePipeline::UpdateAllMetaData;
 use UpdatePipeline::Studies;
 
-my ( $studyfile, $help, $number_of_files_to_return, $lock_file, $parallel_processes, $verbose_output, $errors_min_run_id, $database,$input_study_name, $update_if_changed, $dont_use_warehouse, $taxon_id, $overwrite_common_name, $use_supplier_name, $specific_run_id, $common_name_required, $no_pending_lanes, $species_name );
+my ( $studyfile, $help, $number_of_files_to_return, $lock_file, $parallel_processes, $verbose_output, $errors_min_run_id, $database,$input_study_name, $update_if_changed, $dont_use_warehouse, $taxon_id, $overwrite_common_name, $use_supplier_name, $specific_run_id, $common_name_required, $no_pending_lanes, $species_name, $sample_list, $override_study_name );
 
 GetOptions(
     's|studies=s'               => \$studyfile,
@@ -39,6 +39,8 @@ GetOptions(
     'run|specific_run_id=i'     => \$specific_run_id,
     'nop|no_pending_lanes'      => \$no_pending_lanes,
     'l|lock_file=s'             => \$lock_file,
+    'm|sample_list=s'           => \$sample_list,
+    'o|override_study=s'        => \$override_study_name,
     'h|help'                    => \$help,
 );
 
@@ -60,6 +62,8 @@ Usage: $0
   -run|--specific_run_id       <optionally provide a specfic run id for a study>
   -nop|--no_pending_lanes      <optionally filter out lanes whose npg QC status is pending>
   -l|--lock_file               <optional lock file to prevent multiple instances running>
+  -m|--sample_list             <optionally restict sample list to samples in this lane>
+  -o|--override_study          <optionally override study name for files to this>
   -h|--help                    <this message>
 
 Update the tracking database from IRODs and the warehouse.
@@ -128,6 +132,8 @@ if($parallel_processes == 1)
     use_supplier_name         => $use_supplier_name,
     specific_run_id           => $specific_run_id,
     no_pending_lanes          => $no_pending_lanes,
+    specific_sample_fn        => $sample_list,
+    override_study_name       => $override_study_name,
   );
   $update_pipeline->update();
 }
@@ -154,6 +160,8 @@ else
       use_supplier_name         => $use_supplier_name,
       specific_run_id           => $specific_run_id,
       no_pending_lanes          => $no_pending_lanes,
+      specific_sample_fn        => $sample_list,
+      override_study_name       => $override_study_name,
     );
     $update_pipeline->update();
     $pm->finish; # do the exit in the child process
